@@ -53,7 +53,7 @@ export default function LoginPage() {
         <div className="absolute bottom-1/4 right-0 w-56 h-56 rounded-full bg-accent/25 blur-2xl" />
 
         <div className="relative">
-          <span className="text-2xl font-bold tracking-tight">aponti</span>
+          <span className="text-2xl font-bold tracking-tight">Aponti</span>
         </div>
 
         <div className="relative space-y-5">
@@ -93,7 +93,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm space-y-8">
           <div className="space-y-1">
             <div className="lg:hidden text-2xl font-bold bg-gradient-to-r from-primary to-[oklch(0.710_0.191_294)] bg-clip-text text-transparent mb-4">
-              aponti
+              Aponti
             </div>
             <h2 className="text-2xl font-bold text-foreground">Entrar</h2>
             <p className="text-muted-foreground text-sm">
