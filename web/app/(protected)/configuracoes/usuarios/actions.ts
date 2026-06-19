@@ -12,15 +12,22 @@ async function verificarAdmin() {
   return user
 }
 
-export async function criarUsuario(prevState: { error?: string; success?: boolean } | null, formData: FormData) {
+export async function criarUsuario(
+  prevState: { error?: string; success?: boolean } | null,
+  formData: FormData
+) {
   try {
     await verificarAdmin()
 
     const email = formData.get('email') as string
     const senha = formData.get('senha') as string
     const role = formData.get('role') as string
+    const nome = (formData.get('nome') as string) ?? ''
+    const telefone = (formData.get('telefone') as string) ?? ''
+    const cargo = (formData.get('cargo') as string) ?? ''
+    const funcao = (formData.get('funcao') as string) ?? ''
 
-    if (!email || !senha || !role) return { error: 'Todos os campos são obrigatórios' }
+    if (!email || !senha || !role) return { error: 'Email, senha e perfil são obrigatórios' }
     if (senha.length < 6) return { error: 'Senha deve ter pelo menos 6 caracteres' }
 
     const supabase = createServiceClient()
@@ -28,6 +35,7 @@ export async function criarUsuario(prevState: { error?: string; success?: boolea
       email,
       password: senha,
       app_metadata: { role },
+      user_metadata: { nome, telefone, cargo, funcao },
       email_confirm: true,
     })
 
@@ -40,11 +48,15 @@ export async function criarUsuario(prevState: { error?: string; success?: boolea
   }
 }
 
-export async function alterarRole(userId: string, role: 'admin' | 'user') {
+export async function atualizarUsuario(
+  userId: string,
+  data: { nome: string; telefone: string; cargo: string; funcao: string; role: 'admin' | 'user' }
+) {
   await verificarAdmin()
   const supabase = createServiceClient()
   const { error } = await supabase.auth.admin.updateUserById(userId, {
-    app_metadata: { role },
+    user_metadata: { nome: data.nome, telefone: data.telefone, cargo: data.cargo, funcao: data.funcao },
+    app_metadata: { role: data.role },
   })
   if (error) throw new Error(error.message)
   revalidatePath('/configuracoes/usuarios')
