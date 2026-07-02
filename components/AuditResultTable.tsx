@@ -95,6 +95,7 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
 
   const hasFilters = filters.nome || filters.uf || filters.empresa
   const base = isNF ? naoFeitos : feitos
+  const feitosPorNome = new Map(feitos.map((f) => [f.nomeCompleto, f.totalFeitos]))
 
   // 1. Filter
   const filtered = base.filter((row) => {
@@ -340,6 +341,7 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
                   : (row as Feito).relatoriosFeitos
                 const zerado = count === 0
                 const altaSeveridade = !zerado && isNF && count >= 3
+                const semEnvio = (feitosPorNome.get(row.nomeCompleto) ?? 0) === 0
 
                 return (
                   <TableRow
@@ -363,7 +365,7 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
                     </TableCell>
                     <TableCell className="py-3">
                       <span className="text-sm font-mono text-muted-foreground">
-                        {row.estado || '—'}
+                        {row.estado || (semEnvio ? 'sem envio' : '—')}
                       </span>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell py-3">

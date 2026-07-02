@@ -3,6 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   carregarAlunos,
   carregarRelatorio,
+  extrairGruposRelatorio,
+  aplicarFallbackGrupos,
   calcularAusencias,
   calcularPresencas,
   type ResultadoAusencia,
@@ -38,6 +40,7 @@ export async function gerarAuditoria(
     .from('relatorios')
     .select('id, nome, storage_path')
     .is('deleted_at', null)
+    .order('created_at', { ascending: true })
 
   if (!relatorios?.length) {
     // Sem relatórios ativos — registrar auditoria vazia
@@ -53,6 +56,7 @@ export async function gerarAuditoria(
   // 3. Baixar e parsear cada CSV de relatório
   const relatoriosMap: Record<string, Set<string>> = {}
   const relatoriosIds: string[] = []
+  const gruposPorRelatorio: Map<string, [string, string]>[] = []
 
   for (const rel of relatorios) {
     const { data: relFile } = await supabase.storage
@@ -74,12 +78,17 @@ export async function gerarAuditoria(
 
     relatoriosMap[rel.nome] = nomes
     relatoriosIds.push(rel.id)
+    gruposPorRelatorio.push(extrairGruposRelatorio(text))
   }
 
   // 4. Processar
   const alunos = carregarAlunos(planilhaText)
-  const naoFeitos = calcularAusencias(alunos, relatoriosMap)
-  const feitos = calcularPresencas(alunos, relatoriosMap)
+  let alunosEnriquecidos = alunos
+  for (const grupos of gruposPorRelatorio) {
+    alunosEnriquecidos = aplicarFallbackGrupos(alunosEnriquecidos, grupos)
+  }
+  const naoFeitos = calcularAusencias(alunosEnriquecidos, relatoriosMap)
+  const feitos = calcularPresencas(alunosEnriquecidos, relatoriosMap)
 
   // 5. Serializar para CSV
   const csvNaoFeitos = Papa.unparse(
