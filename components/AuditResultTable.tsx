@@ -371,7 +371,7 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
                         {row.empresa || '—'}
                       </span>
                     </TableCell>
-                    <TableCell className="py-3 max-w-xs">
+                    <TableCell className="py-3 max-w-xs whitespace-normal break-words">
                       <span className="text-sm text-muted-foreground leading-snug">
                         {zerado ? (
                           <span className="text-muted-foreground/40">—</span>
