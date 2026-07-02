@@ -354,7 +354,7 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
                         : 'hover:bg-muted/30'
                     }`}
                   >
-                    <TableCell className="py-3">
+                    <TableCell className="py-3 whitespace-normal break-words">
                       <span
                         className={`text-sm font-medium ${
                           zerado ? 'text-muted-foreground/60' : 'text-foreground'
