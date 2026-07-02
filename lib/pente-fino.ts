@@ -184,6 +184,22 @@ export function extrairGruposRelatorio(csvText: string): Map<string, [string, st
   return grupos
 }
 
+export function aplicarFallbackGrupos(
+  alunos: Aluno[],
+  grupos: Map<string, [string, string]>
+): Aluno[] {
+  return alunos.map((aluno) => {
+    const fallback = grupos.get(aluno.nomeNormalizado)
+    if (!fallback) return aluno
+    const [estadoFallback, empresaFallback] = fallback
+    return {
+      ...aluno,
+      estado: aluno.estado || estadoFallback,
+      empresa: aluno.empresa || empresaFallback,
+    }
+  })
+}
+
 export function calcularAusencias(
   alunos: Aluno[],
   relatorios: Record<string, Set<string>>

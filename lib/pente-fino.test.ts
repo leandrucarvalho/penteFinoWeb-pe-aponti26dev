@@ -140,6 +140,32 @@ describe('extrairGruposRelatorio', () => {
   })
 })
 
+describe('aplicarFallbackGrupos', () => {
+  it('preenche estado vazio a partir do fallback', () => {
+    const alunos = carregarAlunos(CSV_ALUNOS_A) // Formato A: estado sempre vazio
+    const grupos = new Map<string, [string, string]>([['joão silva', ['MA', 'Hermes']]])
+    const resultado = aplicarFallbackGrupos(alunos, grupos)
+
+    const joao = resultado.find((a) => a.nomeNormalizado === 'joão silva')!
+    expect(joao.estado).toBe('MA')
+  })
+
+  it('não sobrescreve estado já preenchido pela planilha geral', () => {
+    const alunos = carregarAlunos(CSV_ALUNOS_B) // já tem estado 'PE' para João
+    const grupos = new Map<string, [string, string]>([['joão silva', ['MA', 'Outra Empresa']]])
+    const resultado = aplicarFallbackGrupos(alunos, grupos)
+
+    const joao = resultado.find((a) => a.nomeNormalizado === 'joão silva')!
+    expect(joao.estado).toBe('PE')
+  })
+
+  it('ignora alunos sem correspondência no fallback', () => {
+    const alunos = carregarAlunos(CSV_ALUNOS_A)
+    const resultado = aplicarFallbackGrupos(alunos, new Map())
+    expect(resultado).toEqual(alunos)
+  })
+})
+
 describe('calcularAusencias', () => {
   it('detecta quem NÃO fez o relatório', () => {
     const alunos = carregarAlunos(CSV_ALUNOS_A)
