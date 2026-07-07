@@ -14,9 +14,9 @@ export function PasswordInput({ className, ...props }: PasswordInputProps) {
   return (
     <div className="relative">
       <Input
+        {...props}
         type={mostrar ? 'text' : 'password'}
         className={cn('pr-10', className)}
-        {...props}
       />
       <button
         type="button"
