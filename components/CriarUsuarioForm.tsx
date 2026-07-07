@@ -3,6 +3,7 @@
 import { useActionState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, CheckCircle2, Loader2, UserPlus } from 'lucide-react'
 import { criarUsuario } from '@/app/(protected)/configuracoes/usuarios/actions'
@@ -42,10 +43,9 @@ export function CriarUsuarioForm({ onSuccess }: { onSuccess?: () => void }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="senha">Senha <span className="text-destructive">*</span></Label>
-            <Input
+            <PasswordInput
               id="senha"
               name="senha"
-              type="password"
               required
               placeholder="mínimo 6 caracteres"
               disabled={pending}
