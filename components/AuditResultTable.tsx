@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { derivarUfsDisponiveis, formatarResumoUfs } from './audit-result-table-utils'
 import {
   Download,
   Users,
@@ -65,7 +66,11 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
   const [page, setPage] = useState(1)
   const [sortCol, setSortCol] = useState<SortCol>('total')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [filters, setFilters] = useState({ nome: '', uf: '', empresa: '' })
+  const [filters, setFilters] = useState({ nome: '', ufs: [] as string[], empresa: '' })
+  const ufsDisponiveis = useMemo(
+    () => derivarUfsDisponiveis(naoFeitos, feitos),
+    [naoFeitos, feitos]
+  )
   const isNF = modo === 'nao_feitos'
 
   function handleModo(v: typeof modo) {
@@ -83,28 +88,32 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
     setPage(1)
   }
 
-  function handleFilter(key: keyof typeof filters, value: string) {
+  function handleFilter(key: 'nome' | 'empresa', value: string) {
     setFilters((prev) => ({ ...prev, [key]: value }))
     setPage(1)
   }
 
-  function clearFilters() {
-    setFilters({ nome: '', uf: '', empresa: '' })
+  function handleUfsChange(ufs: string[]) {
+    setFilters((prev) => ({ ...prev, ufs }))
     setPage(1)
   }
 
-  const hasFilters = filters.nome || filters.uf || filters.empresa
+  function clearFilters() {
+    setFilters({ nome: '', ufs: [], empresa: '' })
+    setPage(1)
+  }
+
+  const hasFilters = filters.nome || filters.ufs.length > 0 || filters.empresa
   const base = isNF ? naoFeitos : feitos
   const feitosPorNome = new Map(feitos.map((f) => [f.nomeCompleto, f.totalFeitos]))
 
   // 1. Filter
   const filtered = base.filter((row) => {
     const n = filters.nome.toLowerCase()
-    const u = filters.uf.toLowerCase()
     const e = filters.empresa.toLowerCase()
     return (
       (!n || row.nomeCompleto.toLowerCase().includes(n)) &&
-      (!u || row.estado.toLowerCase().includes(u)) &&
+      (filters.ufs.length === 0 || filters.ufs.includes(row.estado)) &&
       (!e || row.empresa.toLowerCase().includes(e))
     )
   })
