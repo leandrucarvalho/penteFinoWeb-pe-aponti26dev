@@ -256,14 +256,8 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <Input
-          placeholder="Filtrar por nome..."
-          value={filters.nome}
-          onChange={(e) => handleFilter('nome', e.target.value)}
-          className="h-8 w-52 text-sm"
-        />
         <Combobox multiple items={ufsDisponiveis} value={filters.ufs} onValueChange={handleUfsChange}>
-          <ComboboxChips ref={ufsAnchor} className="w-40 text-sm">
+          <ComboboxChips ref={ufsAnchor} className="w-48 text-sm">
             <ComboboxValue>
               {(values: string[]) => (
                 <>
@@ -286,6 +280,12 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
             </ComboboxList>
           </ComboboxContent>
         </Combobox>
+        <Input
+          placeholder="Filtrar por nome..."
+          value={filters.nome}
+          onChange={(e) => handleFilter('nome', e.target.value)}
+          className="h-8 w-52 text-sm"
+        />
         <Input
           placeholder="Empresa..."
           value={filters.empresa}
