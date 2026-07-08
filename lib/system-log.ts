@@ -32,14 +32,16 @@ export async function registrarLog(params: {
 }): Promise<void> {
   try {
     const supabase = createServiceClient()
-    await supabase.from('system_logs').insert({
+    const { error } = await supabase.from('system_logs').insert({
       user_id: params.userId,
       user_email: params.userEmail,
       action: params.action,
       target: params.target ?? null,
       details: params.details ?? null,
     })
-  } catch {
+    if (error) console.error('registrarLog: falha ao inserir log', error)
+  } catch (e) {
     // Log é best-effort: uma falha aqui nunca deve derrubar a ação principal.
+    console.error('registrarLog: falha ao inserir log', e)
   }
 }
