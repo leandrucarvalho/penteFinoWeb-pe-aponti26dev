@@ -47,18 +47,23 @@ export default async function LogsPage({
 
   if (user?.app_metadata?.role !== 'admin') redirect('/auditorias')
 
-  const from = (page - 1) * PER_PAGE
+  const { count } = await supabase
+    .from('system_logs')
+    .select('*', { count: 'exact', head: true })
+
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PER_PAGE))
+  const safePage = Math.min(page, totalPages)
+
+  const from = (safePage - 1) * PER_PAGE
   const to = from + PER_PAGE - 1
 
-  const { data: logs, count } = await supabase
+  const { data: logs } = await supabase
     .from('system_logs')
-    .select('id, created_at, user_email, action, target, details', { count: 'exact' })
+    .select('id, created_at, user_email, action, target, details')
     .order('created_at', { ascending: false })
     .range(from, to)
 
   const rows = (logs ?? []) as LogRow[]
-  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PER_PAGE))
-  const safePage = Math.min(page, totalPages)
 
   return (
     <div className="space-y-6">
