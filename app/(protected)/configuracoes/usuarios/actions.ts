@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { registrarLog } from '@/lib/system-log'
 
 async function verificarAdmin() {
   const supabase = await createClient()
@@ -17,7 +18,7 @@ export async function criarUsuario(
   formData: FormData
 ) {
   try {
-    await verificarAdmin()
+    const admin = await verificarAdmin()
 
     const email = formData.get('email') as string
     const senha = formData.get('senha') as string
@@ -41,6 +42,13 @@ export async function criarUsuario(
 
     if (error) return { error: error.message }
 
+    await registrarLog({
+      userId: admin.id,
+      userEmail: admin.email!,
+      action: 'usuario.criar',
+      target: email,
+    })
+
     revalidatePath('/configuracoes/usuarios')
     return { success: true }
   } catch (e: unknown) {
@@ -52,13 +60,22 @@ export async function atualizarUsuario(
   userId: string,
   data: { nome: string; telefone: string; cargo: string; funcao: string; role: 'admin' | 'user' }
 ) {
-  await verificarAdmin()
+  const admin = await verificarAdmin()
   const supabase = createServiceClient()
   const { error } = await supabase.auth.admin.updateUserById(userId, {
     user_metadata: { nome: data.nome, telefone: data.telefone, cargo: data.cargo, funcao: data.funcao },
     app_metadata: { role: data.role },
   })
   if (error) throw new Error(error.message)
+
+  await registrarLog({
+    userId: admin.id,
+    userEmail: admin.email!,
+    action: 'usuario.atualizar',
+    target: userId,
+    details: { role: data.role },
+  })
+
   revalidatePath('/configuracoes/usuarios')
 }
 
@@ -68,5 +85,13 @@ export async function deletarUsuario(userId: string) {
   const supabase = createServiceClient()
   const { error } = await supabase.auth.admin.deleteUser(userId)
   if (error) throw new Error(error.message)
+
+  await registrarLog({
+    userId: admin.id,
+    userEmail: admin.email!,
+    action: 'usuario.deletar',
+    target: userId,
+  })
+
   revalidatePath('/configuracoes/usuarios')
 }

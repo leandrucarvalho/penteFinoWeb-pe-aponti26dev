@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useActionState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { login } from './actions'
 import { Logomark } from '@/components/Logomark'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,32 +11,7 @@ import { Label } from '@/components/ui/label'
 import { AlertCircle, Loader2, ShieldCheck, BarChart3, FileText } from 'lucide-react'
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
-  const [erro, setErro] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setErro('')
-
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password: senha,
-    })
-
-    if (error) {
-      setErro('Email ou senha inválidos')
-      setLoading(false)
-      return
-    }
-
-    router.push('/dashboard')
-    router.refresh()
-  }
+  const [state, action, pending] = useActionState(login, null)
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -108,17 +82,17 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form action={action} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="seu@email.com"
                 autoComplete="email"
+                disabled={pending}
                 className="h-11"
               />
             </div>
@@ -127,11 +101,11 @@ export default function LoginPage() {
               <Label htmlFor="senha">Senha</Label>
               <PasswordInput
                 id="senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
+                name="senha"
                 required
                 placeholder="••••••••"
                 autoComplete="current-password"
+                disabled={pending}
                 className="h-11"
               />
               <div className="flex justify-end">
@@ -144,15 +118,15 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {erro && (
+            {state?.error && (
               <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2.5 rounded-lg">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                {erro}
+                {state.error}
               </div>
             )}
 
-            <Button type="submit" className="w-full h-11" disabled={loading}>
-              {loading ? (
+            <Button type="submit" className="w-full h-11" disabled={pending}>
+              {pending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Entrando...

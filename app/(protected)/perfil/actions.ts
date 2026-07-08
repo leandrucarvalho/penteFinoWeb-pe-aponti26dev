@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { registrarLog } from '@/lib/system-log'
 
 export async function atualizarPerfil(data: {
   nome: string
@@ -57,6 +58,13 @@ export async function alterarSenha(
   const { error } = await supabase.auth.updateUser({ password: novaSenha })
 
   if (error) return { error: 'Não foi possível atualizar a senha. Tente novamente.' }
+
+  await registrarLog({
+    userId: user.id,
+    userEmail: user.email,
+    action: 'senha.alterar',
+    target: user.id,
+  })
 
   return {}
 }

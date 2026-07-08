@@ -11,7 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PlanilhaGeralForm } from '@/components/PlanilhaGeralForm'
-import { Settings, Clock, Users, ChevronRight } from 'lucide-react'
+import { Settings, Clock, Users, ChevronRight, ScrollText } from 'lucide-react'
 
 export default async function ConfiguracoesPage() {
   const supabase = await createClient()
@@ -99,6 +99,24 @@ export default async function ConfiguracoesPage() {
             <Button variant="outline" className="gap-2">
               <Users className="w-4 h-4" />
               Gerenciar usuários
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm border-border/60">
+        <CardHeader>
+          <CardTitle>Logs do sistema</CardTitle>
+          <CardDescription>
+            Consulte o histórico de ações administrativas e de negócio realizadas no sistema.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href="/configuracoes/logs">
+            <Button variant="outline" className="gap-2">
+              <ScrollText className="w-4 h-4" />
+              Ver logs
               <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
             </Button>
           </Link>

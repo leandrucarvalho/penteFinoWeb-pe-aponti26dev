@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { gerarAuditoria } from '@/lib/gerar-auditoria'
+import { registrarLog } from '@/lib/system-log'
 
 async function verificarAdmin() {
   const supabase = await createClient()
@@ -51,6 +52,14 @@ export async function adicionarRelatorio(
 
     if (insertError) return { error: `Erro ao registrar: ${insertError.message}` }
 
+    await registrarLog({
+      userId: user.id,
+      userEmail: user.email!,
+      action: 'relatorio.adicionar',
+      target: relatorioId,
+      details: { nome, semana },
+    })
+
     revalidatePath('/relatorios')
     return { success: true, relatorioId }
   } catch (e) {
@@ -59,7 +68,7 @@ export async function adicionarRelatorio(
 }
 
 export async function deletarRelatorio(relatorioId: string) {
-  await verificarAdmin()
+  const admin = await verificarAdmin()
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -69,6 +78,13 @@ export async function deletarRelatorio(relatorioId: string) {
 
   if (error) throw new Error(`Erro ao deletar: ${error.message}`)
 
+  await registrarLog({
+    userId: admin.id,
+    userEmail: admin.email!,
+    action: 'relatorio.deletar',
+    target: relatorioId,
+  })
+
   revalidatePath('/relatorios')
 }
 
@@ -77,10 +93,17 @@ export async function gerarAuditoriaManual(
   relatorioTriggerId: string | null
 ): Promise<{ error?: string; success?: boolean }> {
   try {
-    await verificarAdmin()
+    const admin = await verificarAdmin()
     const supabase = await createClient()
 
     await gerarAuditoria(triggerType, relatorioTriggerId, supabase)
+
+    await registrarLog({
+      userId: admin.id,
+      userEmail: admin.email!,
+      action: 'auditoria.gerar',
+      details: { triggerType, relatorioTriggerId },
+    })
 
     revalidatePath('/relatorios')
     revalidatePath('/auditorias')
