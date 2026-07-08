@@ -263,14 +263,14 @@ export function AuditResultTable({ auditId, naoFeitos, feitos }: Props) {
           className="h-8 w-52 text-sm"
         />
         <Combobox multiple items={ufsDisponiveis} value={filters.ufs} onValueChange={handleUfsChange}>
-          <ComboboxChips ref={ufsAnchor} className="min-w-28 text-sm">
+          <ComboboxChips ref={ufsAnchor} className="w-40 text-sm">
             <ComboboxValue>
               {(values: string[]) => (
                 <>
                   {values.map((uf) => (
                     <ComboboxChip key={uf}>{uf}</ComboboxChip>
                   ))}
-                  <ComboboxChipsInput placeholder="UF..." />
+                  <ComboboxChipsInput placeholder={values.length === 0 ? 'UF...' : undefined} />
                 </>
               )}
             </ComboboxValue>
