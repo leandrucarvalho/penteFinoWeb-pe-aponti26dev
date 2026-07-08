@@ -25,7 +25,7 @@ export default async function ProtectedLayout({
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex items-center justify-between px-4 h-14 max-w-5xl">
           <div className="flex items-center gap-5">
-            <Link href="/auditorias" className="flex items-center gap-2 shrink-0">
+            <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
               <Logomark className="w-6 h-6 text-primary shrink-0" />
               <span className="text-lg font-bold bg-gradient-to-r from-primary to-[oklch(0.710_0.191_294)] bg-clip-text text-transparent">
                 Aponti
