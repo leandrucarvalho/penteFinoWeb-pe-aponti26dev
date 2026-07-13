@@ -4,6 +4,14 @@ import { useActionState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { AlertCircle, CheckCircle2, Loader2, UserPlus } from 'lucide-react'
 import { criarUsuario } from '@/app/(protected)/configuracoes/usuarios/actions'
 
@@ -41,17 +49,17 @@ export function CriarUsuarioForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
         <div className="mt-4 space-y-2">
           <Label htmlFor="role">Perfil de acesso <span className="text-destructive">*</span></Label>
-          <select
-            id="role"
-            name="role"
-            required
-            disabled={pending}
-            defaultValue="user"
-            className="flex h-10 w-full sm:w-[200px] items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="user">Usuário</option>
-            <option value="admin">Admin</option>
-          </select>
+          <Select name="role" required disabled={pending} defaultValue="user">
+            <SelectTrigger id="role" className="h-10 w-full sm:w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="user">Usuário</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
