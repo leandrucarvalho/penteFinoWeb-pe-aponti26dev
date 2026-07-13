@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,13 +12,11 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react'
 export function EsqueciSenhaForm({ linkInvalido }: { linkInvalido: boolean }) {
   const [email, setEmail] = useState('')
   const [enviado, setEnviado] = useState(false)
-  const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    setErro('')
 
     const supabase = createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -27,7 +26,7 @@ export function EsqueciSenhaForm({ linkInvalido }: { linkInvalido: boolean }) {
     setLoading(false)
 
     if (error) {
-      setErro('Não foi possível enviar o email agora. Tente novamente em instantes.')
+      toast.error('Não foi possível enviar o email agora. Tente novamente em instantes.')
       return
     }
 
@@ -70,13 +69,6 @@ export function EsqueciSenhaForm({ linkInvalido }: { linkInvalido: boolean }) {
               className="h-11"
             />
           </div>
-
-          {erro && (
-            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2.5 rounded-lg">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {erro}
-            </div>
-          )}
 
           <Button type="submit" className="w-full h-11" disabled={loading}>
             {loading ? (

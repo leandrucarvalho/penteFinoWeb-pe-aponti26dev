@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useRef, useState, useEffect, useTransition } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { UploadCloud, FileCheck2, AlertCircle, Loader2 } from 'lucide-react'
+import { UploadCloud, FileCheck2, Loader2 } from 'lucide-react'
 import { adicionarRelatorio, gerarAuditoriaManual } from '@/app/(protected)/relatorios/actions'
 
 export function AdicionarRelatorioForm() {
@@ -22,15 +23,15 @@ export function AdicionarRelatorioForm() {
   const formRef = useRef<HTMLFormElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [showGerarDialog, setShowGerarDialog] = useState(false)
-  const [gerarError, setGerarError] = useState<string | null>(null)
   const [gerando, startGerarTransition] = useTransition()
 
   useEffect(() => {
     if (state?.success) {
       formRef.current?.reset()
       setFileName(null)
-      setGerarError(null)
       setShowGerarDialog(true)
+    } else if (state?.error) {
+      toast.error(state.error)
     }
   }, [state])
 
@@ -39,16 +40,23 @@ export function AdicionarRelatorioForm() {
     startGerarTransition(async () => {
       const res = await gerarAuditoriaManual('add', state.relatorioId!)
       if (res.error) {
-        setGerarError(res.error)
+        toast.error(res.error)
         return
       }
       setShowGerarDialog(false)
     })
   }
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (!fileName) {
+      e.preventDefault()
+      toast.error('Selecione um arquivo CSV.')
+    }
+  }
+
   return (
     <>
-      <form ref={formRef} action={action} className="space-y-5">
+      <form ref={formRef} action={action} onSubmit={handleSubmit} className="space-y-5">
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="nome">Nome do relatório</Label>
@@ -110,19 +118,11 @@ export function AdicionarRelatorioForm() {
             name="arquivo"
             type="file"
             accept=".csv"
-            required
             disabled={pending}
             className="sr-only"
             onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
           />
         </div>
-
-        {state?.error && (
-          <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2.5 rounded-lg">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            {state.error}
-          </div>
-        )}
 
         <Button type="submit" disabled={pending} className="gap-2">
           {pending ? (
@@ -142,10 +142,7 @@ export function AdicionarRelatorioForm() {
       <AlertDialog
         open={showGerarDialog}
         onOpenChange={(open) => {
-          if (!open) {
-            setShowGerarDialog(false)
-            setGerarError(null)
-          }
+          if (!open) setShowGerarDialog(false)
         }}
       >
         <AlertDialogContent>
@@ -155,12 +152,6 @@ export function AdicionarRelatorioForm() {
               O relatório foi anexado com sucesso. Deseja gerar a auditoria agora?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {gerarError && (
-            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2.5 rounded-lg">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {gerarError}
-            </div>
-          )}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={gerando}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleGerarAuditoria} disabled={gerando}>

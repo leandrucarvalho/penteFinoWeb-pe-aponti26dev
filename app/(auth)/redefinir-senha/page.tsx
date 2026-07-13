@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 export default function RedefinirSenhaPage() {
   const router = useRouter()
   const [verificandoSessao, setVerificandoSessao] = useState(true)
   const [senha, setSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
-  const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -29,14 +29,13 @@ export default function RedefinirSenhaPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setErro('')
 
     if (senha.length < 6) {
-      setErro('Senha deve ter pelo menos 6 caracteres')
+      toast.error('Senha deve ter pelo menos 6 caracteres')
       return
     }
     if (senha !== confirmarSenha) {
-      setErro('As senhas não coincidem')
+      toast.error('As senhas não coincidem')
       return
     }
 
@@ -46,7 +45,7 @@ export default function RedefinirSenhaPage() {
     setLoading(false)
 
     if (error) {
-      setErro('Não foi possível atualizar a senha. Tente novamente.')
+      toast.error('Não foi possível atualizar a senha. Tente novamente.')
       return
     }
 
@@ -98,13 +97,6 @@ export default function RedefinirSenhaPage() {
               className="h-11"
             />
           </div>
-
-          {erro && (
-            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2.5 rounded-lg">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {erro}
-            </div>
-          )}
 
           <Button type="submit" className="w-full h-11" disabled={loading}>
             {loading ? (

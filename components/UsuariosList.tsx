@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,7 +33,6 @@ import {
   Phone,
   Briefcase,
   Tag,
-  AlertCircle,
 } from 'lucide-react'
 import {
   deletarUsuario,
@@ -72,7 +72,6 @@ export function UsuariosList({
     funcao: '',
     role: 'user',
   })
-  const [editError, setEditError] = useState<string | null>(null)
   const [isSaving, startSave] = useTransition()
 
   useEffect(() => {
@@ -84,7 +83,6 @@ export function UsuariosList({
         funcao: (editingUser.user_metadata?.funcao as string) ?? '',
         role: ((editingUser.app_metadata?.role as string) ?? 'user') as 'admin' | 'user',
       })
-      setEditError(null)
     }
   }, [editingUser])
 
@@ -101,13 +99,12 @@ export function UsuariosList({
 
   function handleSave() {
     if (!editingUser) return
-    setEditError(null)
     startSave(async () => {
       try {
         await atualizarUsuario(editingUser.id, editForm)
         setEditingUser(null)
       } catch (e) {
-        setEditError(e instanceof Error ? e.message : 'Erro ao salvar')
+        toast.error(e instanceof Error ? e.message : 'Erro ao salvar')
       }
     })
   }
@@ -343,13 +340,6 @@ export function UsuariosList({
               </div>
             </div>
           </div>
-
-          {editError && (
-            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2 rounded-lg">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {editError}
-            </div>
-          )}
 
           <DialogFooter>
             <DialogClose render={<Button variant="outline" disabled={isSaving} />}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { FileText, Trash2, InboxIcon, AlertCircle } from 'lucide-react'
+import { FileText, Trash2, InboxIcon } from 'lucide-react'
 import { deletarRelatorio, gerarAuditoriaManual } from '@/app/(protected)/relatorios/actions'
 
 type Relatorio = {
@@ -28,18 +29,14 @@ export function RelatoriosList({ relatorios }: { relatorios: Relatorio[] }) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [relatorioExcluidoId, setRelatorioExcluidoId] = useState<string | null>(null)
   const [gerando, setGerando] = useState(false)
-  const [gerarError, setGerarError] = useState<string | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   async function handleDelete(id: string) {
     setDeletingId(id)
-    setDeleteError(null)
     try {
       await deletarRelatorio(id)
-      setGerarError(null)
       setRelatorioExcluidoId(id)
     } catch (e) {
-      setDeleteError(e instanceof Error ? e.message : 'Erro ao excluir relatório')
+      toast.error(e instanceof Error ? e.message : 'Erro ao excluir relatório')
     } finally {
       setDeletingId(null)
     }
@@ -51,7 +48,7 @@ export function RelatoriosList({ relatorios }: { relatorios: Relatorio[] }) {
     try {
       const res = await gerarAuditoriaManual('delete', relatorioExcluidoId)
       if (res.error) {
-        setGerarError(res.error)
+        toast.error(res.error)
         return
       }
       setRelatorioExcluidoId(null)
@@ -109,11 +106,7 @@ export function RelatoriosList({ relatorios }: { relatorios: Relatorio[] }) {
               </div>
             </div>
 
-            <AlertDialog
-              onOpenChange={(open) => {
-                if (!open) setDeleteError(null)
-              }}
-            >
+            <AlertDialog>
               <AlertDialogTrigger render={
                 <Button
                   variant="ghost"
@@ -131,12 +124,6 @@ export function RelatoriosList({ relatorios }: { relatorios: Relatorio[] }) {
                     desfeita.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                {deleteError && (
-                  <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2.5 rounded-lg">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    {deleteError}
-                  </div>
-                )}
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction
@@ -156,10 +143,7 @@ export function RelatoriosList({ relatorios }: { relatorios: Relatorio[] }) {
       <AlertDialog
         open={relatorioExcluidoId !== null}
         onOpenChange={(open) => {
-          if (!open) {
-            setRelatorioExcluidoId(null)
-            setGerarError(null)
-          }
+          if (!open) setRelatorioExcluidoId(null)
         }}
       >
         <AlertDialogContent>
@@ -169,12 +153,6 @@ export function RelatoriosList({ relatorios }: { relatorios: Relatorio[] }) {
               O relatório foi excluído. Deseja gerar a auditoria agora?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {gerarError && (
-            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2.5 rounded-lg">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {gerarError}
-            </div>
-          )}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={gerando}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleGerarAuditoria} disabled={gerando}>

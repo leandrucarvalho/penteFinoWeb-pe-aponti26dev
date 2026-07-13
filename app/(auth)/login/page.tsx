@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
+import { toast } from 'sonner'
 import Link from 'next/link'
 import { login } from './actions'
 import { Logomark } from '@/components/Logomark'
@@ -8,10 +9,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, Loader2, ShieldCheck, BarChart3, FileText } from 'lucide-react'
+import { Loader2, ShieldCheck, BarChart3, FileText } from 'lucide-react'
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, null)
+
+  useEffect(() => {
+    if (state?.error) toast.error(state.error)
+  }, [state])
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -117,13 +122,6 @@ export default function LoginPage() {
                 </Link>
               </div>
             </div>
-
-            {state?.error && (
-              <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/8 border border-destructive/20 px-3 py-2.5 rounded-lg">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                {state.error}
-              </div>
-            )}
 
             <Button type="submit" className="w-full h-11" disabled={pending}>
               {pending ? (
