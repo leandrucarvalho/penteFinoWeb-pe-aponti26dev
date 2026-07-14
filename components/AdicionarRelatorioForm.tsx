@@ -16,29 +16,45 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { UploadCloud, FileCheck2, Loader2 } from 'lucide-react'
-import { adicionarRelatorio, gerarAuditoriaManual } from '@/app/(protected)/relatorios/actions'
+import { adicionarRelatorios, gerarAuditoriaManual } from '@/app/(protected)/relatorios/actions'
 
 export function AdicionarRelatorioForm() {
-  const [state, action, pending] = useActionState(adicionarRelatorio, null)
+  const [state, action, pending] = useActionState(adicionarRelatorios, null)
   const formRef = useRef<HTMLFormElement>(null)
-  const [fileName, setFileName] = useState<string | null>(null)
+  const [fileNames, setFileNames] = useState<string[]>([])
   const [showGerarDialog, setShowGerarDialog] = useState(false)
   const [gerando, startGerarTransition] = useTransition()
 
   useEffect(() => {
-    if (state?.success) {
-      formRef.current?.reset()
-      setFileName(null)
-      setShowGerarDialog(true)
-    } else if (state?.error) {
+    if (!state) return
+
+    if (state.error) {
       toast.error(state.error)
+      return
+    }
+
+    if (state.falhas && state.falhas.length > 0) {
+      state.falhas.forEach((falha) => toast.error(`${falha.nome}: ${falha.erro}`))
+    }
+
+    if (state.sucesso && state.sucesso.length > 0) {
+      formRef.current?.reset()
+      setFileNames([])
+      toast.success(
+        state.sucesso.length === 1
+          ? 'Relatório anexado com sucesso!'
+          : `${state.sucesso.length} relatórios anexados com sucesso!`
+      )
+      setShowGerarDialog(true)
     }
   }, [state])
 
   function handleGerarAuditoria() {
-    if (!state?.relatorioId) return
+    const sucesso = state?.sucesso
+    if (!sucesso || sucesso.length === 0) return
+    const triggerId = sucesso.length === 1 ? sucesso[0].id : null
     startGerarTransition(async () => {
-      const res = await gerarAuditoriaManual('add', state.relatorioId!)
+      const res = await gerarAuditoriaManual('add', triggerId)
       if (res.error) {
         toast.error(res.error)
         return
@@ -48,66 +64,43 @@ export function AdicionarRelatorioForm() {
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    if (!fileName) {
+    if (fileNames.length === 0) {
       e.preventDefault()
-      toast.error('Selecione um arquivo CSV.')
+      toast.error('Selecione ao menos um arquivo CSV.')
     }
   }
 
   return (
     <>
       <form ref={formRef} action={action} onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="nome">Nome do relatório</Label>
-            <Input
-              id="nome"
-              name="nome"
-              required
-              placeholder="ex: Relatório 1"
-              disabled={pending}
-              className="h-10"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="semana">Semana</Label>
-            <Input
-              id="semana"
-              name="semana"
-              required
-              placeholder="ex: Semana 1"
-              disabled={pending}
-              className="h-10"
-            />
-          </div>
-        </div>
-
         <div className="space-y-2">
-          <Label>Arquivo CSV (exportado do Moodle)</Label>
+          <Label>Arquivo(s) CSV (exportado do Moodle)</Label>
           <label
             htmlFor="arquivo-rel"
             className={`flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed cursor-pointer transition-all py-8 px-4 text-center
               ${pending ? 'opacity-50 cursor-not-allowed' : ''}
-              ${fileName
+              ${fileNames.length > 0
                 ? 'border-primary/50 bg-primary/5'
                 : 'border-border hover:border-primary/40 hover:bg-primary/3'
               }`}
           >
-            {fileName ? (
+            {fileNames.length > 0 ? (
               <>
                 <FileCheck2 className="w-7 h-7 text-primary mb-2" />
                 <span className="text-sm font-medium text-primary truncate max-w-full px-4">
-                  {fileName}
+                  {fileNames.length === 1
+                    ? fileNames[0]
+                    : `${fileNames.length} arquivos selecionados`}
                 </span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  Clique para trocar o arquivo
+                <span className="text-xs text-muted-foreground mt-1 truncate max-w-full px-4">
+                  {fileNames.length === 1 ? 'Clique para trocar o arquivo' : fileNames.join(', ')}
                 </span>
               </>
             ) : (
               <>
                 <UploadCloud className="w-7 h-7 text-muted-foreground mb-2" />
                 <span className="text-sm font-medium text-foreground">
-                  Clique para selecionar um arquivo
+                  Clique para selecionar um ou mais arquivos
                 </span>
                 <span className="text-xs text-muted-foreground mt-1">CSV exportado do Moodle</span>
               </>
@@ -115,12 +108,13 @@ export function AdicionarRelatorioForm() {
           </label>
           <Input
             id="arquivo-rel"
-            name="arquivo"
+            name="arquivos"
             type="file"
             accept=".csv"
+            multiple
             disabled={pending}
             className="sr-only"
-            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+            onChange={(e) => setFileNames(Array.from(e.target.files ?? []).map((f) => f.name))}
           />
         </div>
 
@@ -133,7 +127,7 @@ export function AdicionarRelatorioForm() {
           ) : (
             <>
               <UploadCloud className="w-4 h-4" />
-              Adicionar relatório
+              Adicionar relatório(s)
             </>
           )}
         </Button>
@@ -147,9 +141,15 @@ export function AdicionarRelatorioForm() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Relatório anexado</AlertDialogTitle>
+            <AlertDialogTitle>
+              {state?.sucesso && state.sucesso.length > 1
+                ? 'Relatórios anexados'
+                : 'Relatório anexado'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              O relatório foi anexado com sucesso. Deseja gerar a auditoria agora?
+              {state?.sucesso && state.sucesso.length > 1
+                ? `${state.sucesso.length} relatórios foram anexados com sucesso. Deseja gerar a auditoria agora?`
+                : 'O relatório foi anexado com sucesso. Deseja gerar a auditoria agora?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
