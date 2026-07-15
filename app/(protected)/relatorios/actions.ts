@@ -144,25 +144,39 @@ export async function adicionarRelatorios(
   }
 }
 
-export async function deletarRelatorio(relatorioId: string) {
+export async function deletarRelatorios(
+  relatorioIds: string[]
+): Promise<{ sucesso: string[]; falhas: { id: string; erro: string }[] }> {
   const admin = await verificarAdmin()
   const supabase = await createClient()
 
-  const { error } = await supabase
-    .from('relatorios')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', relatorioId)
+  const sucesso: string[] = []
+  const falhas: { id: string; erro: string }[] = []
 
-  if (error) throw new Error(`Erro ao deletar: ${error.message}`)
+  for (const relatorioId of relatorioIds) {
+    const { error } = await supabase
+      .from('relatorios')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', relatorioId)
 
-  await registrarLog({
-    userId: admin.id,
-    userEmail: admin.email!,
-    action: 'relatorio.deletar',
-    target: relatorioId,
-  })
+    if (error) {
+      falhas.push({ id: relatorioId, erro: error.message })
+      continue
+    }
 
-  revalidatePath('/relatorios')
+    await registrarLog({
+      userId: admin.id,
+      userEmail: admin.email!,
+      action: 'relatorio.deletar',
+      target: relatorioId,
+    })
+
+    sucesso.push(relatorioId)
+  }
+
+  if (sucesso.length > 0) revalidatePath('/relatorios')
+
+  return { sucesso, falhas }
 }
 
 export async function gerarAuditoriaManual(
