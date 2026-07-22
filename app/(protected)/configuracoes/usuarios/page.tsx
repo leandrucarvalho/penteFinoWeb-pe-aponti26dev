@@ -47,7 +47,7 @@ export default async function UsuariosPage() {
           <div>
             <h1 className="text-2xl font-bold">Gerenciar usuários</h1>
             <p className="text-muted-foreground text-sm mt-0.5">
-              Crie, altere o perfil e remova usuários do sistema
+              Crie, altere o perfil e desative usuários do sistema
             </p>
           </div>
         </div>

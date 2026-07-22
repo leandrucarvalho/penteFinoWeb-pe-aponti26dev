@@ -92,6 +92,8 @@ export async function reativarUsuario(userId: string) {
 
 A chamada a `revoke_user_sessions` não precisa de tratamento de erro próprio: se falhar, o ban já foi aplicado (login futuro bloqueado) — só o "derrubar na hora" fica comprometido, o que não justifica abortar a operação inteira nem confundir o admin com um erro. Um `await` sem checar `error` é suficiente aqui; se o RPC falhar, ele resolve normalmente (o cliente Supabase não lança exceção nesse caso), então não há necessidade de silenciar nada.
 
+> **Nota pós-implementação:** "não precisa de tratamento" acabou sendo half-certo — não precisa *abortar* a operação, mas ignorar o erro por completo deixaria uma falha real do RPC (ex: permissão revogada num ambiente específico) completamente invisível pra sempre. A revisão de qualidade de código pegou isso; o erro passou a ser capturado e logado via `console.error`, sem alterar a decisão de não abortar (commit `d880c7c`).
+
 ### `app/(auth)/login/actions.ts`
 
 Sem mudança de lógica — só a mensagem de erro passa a diferenciar o caso `user_banned`:

@@ -48,6 +48,8 @@ grant execute on function public.revoke_user_sessions(uuid) to service_role;
 
 Use a ferramenta MCP do Supabase (`apply_migration`) com `project_id: "chuppzvaanyasljuknen"`, `name: "add_revoke_user_sessions_function"`, e o SQL do Step 1 como `query`. Isso aplica a migration no banco remoto e já registra o arquivo correspondente.
 
+> **Nota pós-implementação:** o `apply_migration` atribuiu o timestamp `20260722163959` (não o `20260722162937` usado no nome do arquivo local original, que era só o placeholder do momento em que este plano foi escrito). A revisão de qualidade de código pegou esse drift; o arquivo local foi renomeado no commit `c092779` para `supabase/migrations/20260722163959_add_revoke_user_sessions_function.sql`, batendo com o que está de fato registrado no Supabase.
+
 - [ ] **Step 3: Verificar que a function foi criada e só o service_role pode chamá-la**
 
 Rode via MCP `execute_sql` (project_id `chuppzvaanyasljuknen`):
@@ -158,6 +160,8 @@ export async function reativarUsuario(userId: string) {
 ```
 
 Note: a chamada a `supabase.rpc('revoke_user_sessions', ...)` não checa `error` de propósito — se a revogação de sessão falhar, o ban já foi aplicado com sucesso (login futuro bloqueado), e não vale a pena abortar a operação inteira ou confundir o admin por causa só da parte "derrubar agora". O `await` sem uso do retorno é intencional, não um descuido.
+
+> **Nota pós-implementação:** a revisão de qualidade de código apontou que ignorar completamente o erro do RPC (sem nem logar) deixaria uma eventual quebra da function `revoke_user_sessions` invisível pra sempre. Correção aplicada no commit `d880c7c`: o erro passou a ser capturado e reportado via `console.error('revoke_user_sessions falhou', rpcError)`, mantendo o comportamento de não abortar a desativação.
 
 - [ ] **Step 2: Atualizar `SystemLogAction`/`ACTION_LABELS` em `lib/system-log.ts`**
 
